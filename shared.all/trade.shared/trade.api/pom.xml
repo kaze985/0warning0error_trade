@@ -17,6 +17,10 @@
             <groupId>com.geekgame.shared</groupId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.geekgame.shared</groupId>
+            <artifactId>account.service</artifactId>
+        </dependency>
     </dependencies>
 
     <properties>
