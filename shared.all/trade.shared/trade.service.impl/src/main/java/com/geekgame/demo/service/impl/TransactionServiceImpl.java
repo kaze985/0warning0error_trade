@@ -8,14 +8,9 @@ import com.geekgame.demo.model.TransactionStatus;
 import com.geekgame.demo.service.AccountService;
 import com.geekgame.demo.service.TransactionService;
 import com.geekgame.demo.util.SnowflakeIdGenerator;
-import io.shardingsphere.transaction.annotation.ShardingTransactionType;
-import io.shardingsphere.transaction.api.TransactionType;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
@@ -23,7 +18,7 @@ public class TransactionServiceImpl implements TransactionService {
     private SnowflakeIdGenerator generator;
     @Autowired
     private TransactionRecordDAO recordDAO;
-    @DubboReference
+    @DubboReference(timeout = 2000,retries = 0)
     private AccountService accountService;
 
     @Override
@@ -39,11 +34,24 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public int update(TransactionRecord record) {
+        if (record == null) {
+            return 0;
+        }
+        int update = recordDAO.update(new TransactionRecordDO(record));
+        if (update == 1){
+            return 1;
+        }
+        return 0;
+    }
+
+    @Override
     public TransactionRecord transfer(TransactionRecord record) {
         if (record == null){
             return null;
         }
-        Account payerAccount = accountService.selectByAccount(record.getPayer());
+        Account payerAccount = accountService.select(record.getPayer());
+
         if (payerAccount.getBalance() < record.getAmount()) {
             return null;
         }
@@ -51,28 +59,22 @@ public class TransactionServiceImpl implements TransactionService {
         record.setId(String.valueOf(generator.nextId()));
         record.setStatus(TransactionStatus.FAIL);
         record.setStatusName(TransactionStatus.FAIL.getStatusName());
-        record.setGmtCreated(LocalDateTime.now());
-        record.setGmtModified(LocalDateTime.now());
+        add(record);
 
-        Account payeeAccount = accountService.selectByAccount(record.getPayee());
-        payerAccount.setBalance(payerAccount.getBalance() - record.getAmount());
-        payeeAccount.setBalance(payeeAccount.getBalance() + record.getAmount());
+        Account payeeAccount = accountService.select(record.getPayee());
 
-        boolean updateBalance = updateBalance(payerAccount, payeeAccount);
+        payerAccount.setBalance(payerAccount.getBalance()-record.getAmount());
+        payeeAccount.setBalance(payeeAccount.getBalance()+record.getAmount());
+
+        boolean updateBalance = accountService.updateBalance(payerAccount, payeeAccount);
+
         if (updateBalance) {
             record.setStatus(TransactionStatus.SUCCESSFUL);
             record.setStatusName(TransactionStatus.SUCCESSFUL.getStatusName());
+            update(record);
         }
-        add(record);
 
         return record;
     }
 
-    @ShardingTransactionType(TransactionType.LOCAL)
-    @Transactional(rollbackFor = Exception.class)
-    public boolean updateBalance(Account payerAccount,Account payeeAccount){
-        accountService.update(payerAccount);
-        accountService.update(payeeAccount);
-        return true;
-    }
 }

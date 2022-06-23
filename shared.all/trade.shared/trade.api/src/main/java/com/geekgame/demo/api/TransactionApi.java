@@ -23,7 +23,7 @@ public class TransactionApi {
             result.setMessage("record is null");
             return result;
         }
-        if (record.getPayee() == null || record.getPayer() == null || record.getAmount() == null || record.getAmount() == 0) {
+        if (record.getPayee() == null || record.getPayer() == null || record.getAmount() == null || record.getAmount() <= 0) {
             result.setMessage("Invalid transfer");
             return result;
         }

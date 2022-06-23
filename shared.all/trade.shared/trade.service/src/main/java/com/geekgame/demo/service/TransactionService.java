@@ -8,4 +8,5 @@ public interface TransactionService {
 
     TransactionRecord transfer(TransactionRecord record);
 
+    int update(TransactionRecord record);
 }
