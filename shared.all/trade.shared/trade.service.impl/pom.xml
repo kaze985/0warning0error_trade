@@ -17,6 +17,10 @@
             <groupId>com.geekgame.shared</groupId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.geekgame.shared</groupId>
+            <artifactId>account.service</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
@@ -40,6 +44,8 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
         </dependency>
+
+
     </dependencies>
 
     <properties>
