@@ -14,8 +14,8 @@
     </resultMap>
 
     <insert id="add" parameterType="com.geekgame.demo.dataobject.TransactionRecordDO">
-        insert into `transaction_record` (id, payer, payee, amount, transaction_status)
-        values (#{id},#{payer},#{payee},#{amount},#{status})
+        insert into `transaction_record` (id, payer, payee, amount, transaction_status, gmt_created, gmt_modified)
+        values (#{id},#{payer},#{payee},#{amount},#{status},now(),now())
     </insert>
 
     <update id="update" parameterType="com.geekgame.demo.dataobject.TransactionRecordDO">
@@ -24,7 +24,7 @@
             <if test="status != null">
                 transaction_status=#{status},
             </if>
-            gmt_modified = current_timestamp()
+            gmt_modified = now()
         </set>
         <where>
             <if test="id != '' and id != null">
