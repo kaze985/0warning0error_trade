@@ -8,8 +8,12 @@ import com.geekgame.demo.model.TransactionStatus;
 import com.geekgame.demo.service.AccountService;
 import com.geekgame.demo.service.TransactionService;
 import com.geekgame.demo.util.SnowflakeIdGenerator;
+import io.seata.spring.annotation.GlobalTransactional;
 import org.apache.dubbo.config.annotation.DubboReference;
+import org.apache.shardingsphere.transaction.annotation.ShardingTransactionType;
+import org.apache.shardingsphere.transaction.core.TransactionType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,7 +22,10 @@ public class TransactionServiceImpl implements TransactionService {
     private SnowflakeIdGenerator generator;
     @Autowired
     private TransactionRecordDAO recordDAO;
-    @DubboReference(timeout = 2000,retries = 0)
+    @Autowired
+    @Lazy
+    private TransactionServiceImpl service;
+    @DubboReference(timeout = 300000,retries = 0)
     private AccountService accountService;
 
     @Override
@@ -66,7 +73,7 @@ public class TransactionServiceImpl implements TransactionService {
         payerAccount.setBalance(payerAccount.getBalance()-record.getAmount());
         payeeAccount.setBalance(payeeAccount.getBalance()+record.getAmount());
 
-        boolean updateBalance = accountService.updateBalance(payerAccount, payeeAccount);
+        boolean updateBalance = service.updateBalance(payerAccount,payeeAccount);
 
         if (updateBalance) {
             record.setStatus(TransactionStatus.SUCCESSFUL);
@@ -77,4 +84,14 @@ public class TransactionServiceImpl implements TransactionService {
         return record;
     }
 
+    @ShardingTransactionType(TransactionType.BASE)
+    @GlobalTransactional
+    public boolean updateBalance(Account payerAccount, Account payeeAccount) {
+        int i = accountService.update(payerAccount);
+        int j = accountService.update(payeeAccount);
+        if (i==1 && j==1){
+            return true;
+        }
+        return false;
+    }
 }

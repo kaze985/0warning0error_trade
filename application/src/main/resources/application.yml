@@ -1,0 +1,74 @@
+dubbo:
+  cloud:
+    subscribed-services: geekgame-account-app
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    address: spring-cloud://localhost
+  scan:
+    base-packages: com.geekgame.demo.service.impl
+
+logging:
+  level:
+    root: info
+
+mybatis:
+  mapper-locations: classpath:com/geekgame/demo/dao/*.xml
+
+server:
+  port: 8081
+
+spring:
+  application:
+    name: geekgame-trade-app
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 182.92.185.137:8848
+
+  shardingsphere:
+    datasource:
+      names: ds0
+      ds0:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: ZABzueZ3
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:mysql://sh-cynosdbmysql-grp-knpl8owi.sql.tencentcdb.com:21104/springboot_demo?serverTimezone=GMT%2B8
+        username: root
+    props:
+      sql:
+        show: true
+
+  jackson:
+    default-property-inclusion: non_null
+    deserialization:
+      fail-on-unknown-properties: false
+
+worker:
+  id: 1
+
+seata:
+  enabled: true
+  application-id: geekgame-trade-app
+  tx-service-group: default_tx_group
+  enable-auto-data-source-proxy: false
+  config:
+    type: nacos
+    nacos:
+      namespace:
+      serverAddr: 182.92.185.137:8848
+      group: SEATA_GROUP
+      username: "nacos"
+      password: "nacos"
+      data-id: seata.properties
+  registry:
+    type: nacos
+    nacos:
+      application: seata-server
+      server-addr: 182.92.185.137:8848
+      group: SEATA_GROUP
+      namespace:
+      username: "nacos"
+      password: "nacos"
