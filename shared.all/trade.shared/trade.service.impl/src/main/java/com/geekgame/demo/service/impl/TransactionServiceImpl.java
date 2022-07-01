@@ -57,7 +57,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (record == null){
             return null;
         }
-        Account payerAccount = accountService.selectByAccount(record.getPayer());
+        Account payerAccount = accountService.select(record.getPayer());
 
         if (payerAccount.getBalance() < record.getAmount()) {
             return null;
@@ -68,7 +68,7 @@ public class TransactionServiceImpl implements TransactionService {
         record.setStatusName(TransactionStatus.FAIL.getStatusName());
         add(record);
 
-        Account payeeAccount = accountService.selectByAccount(record.getPayee());
+        Account payeeAccount = accountService.select(record.getPayee());
 
         payerAccount.setBalance(payerAccount.getBalance()-record.getAmount());
         payeeAccount.setBalance(payeeAccount.getBalance()+record.getAmount());
@@ -89,6 +89,7 @@ public class TransactionServiceImpl implements TransactionService {
     public boolean updateBalance(Account payerAccount, Account payeeAccount) {
         int i = accountService.update(payerAccount);
         int j = accountService.update(payeeAccount);
+        int a=1/0;
         if (i==1 && j==1){
             return true;
         }
